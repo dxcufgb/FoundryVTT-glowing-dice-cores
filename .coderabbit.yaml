@@ -1,0 +1,28 @@
+# CodeRabbit settings for FoundryVTT-glowing-dice-cores.
+# Shared rules come from the central dxcufgb/coderabbit repository (inheritance: true), and CodeRabbit reads
+# the README as code guidelines. Only what is specific to this repository is here.
+# Paths here must not repeat a central path (scripts/**/*.js, .github/workflows/**, **/*.sh, **/*.ps1, **/*.iss,
+# module.json, **/*.md): an entry with the same path replaces the central one instead of adding to it.
+# Check the merged result on a pull request with: @coderabbitai configuration
+inheritance: true
+
+reviews:
+  path_instructions:
+    - path: "scripts/**"
+      instructions: |
+        The glow is a Dice So Nice dice system. System options arrive in other players' Dice So Nice appearance
+        data, so every value must go through normalize() before it reaches a uniform. Callbacks from Dice So Nice
+        (processMaterial, beforeShaderCompile, material.onBeforeRender) must never throw: log and leave the die as
+        Dice So Nice made it. The injected GLSL must not depend on per-material values other than uniforms and
+        GC_STEPS, so Dice So Nice's shader program cache stays shared. The per-frame path (onBeforeRender) must not
+        allocate. EFFECTS order is the shader's pattern number and PULSES order its pulse number; SYSTEM_ID, effect,
+        pulse and option ids are stored in users' settings and must never be renamed.
+    - path: "tests/**"
+      instructions: |
+        Plain node:test files run by CI through .github/foundry-module.json ("lint"). They must not need Foundry,
+        three.js or a GPU.
+    - path: ".github/workflows/{ci,release}.yml"
+      instructions: |
+        Thin callers of dxcufgb/foundry-module-ci, identical in every Foundry module repository. Flag any change
+        here that is not the same change in all modules (it belongs in foundry-module-ci instead), except the
+        pinned SHA of foundry-module-ci itself.

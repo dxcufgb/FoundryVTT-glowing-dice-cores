@@ -1,0 +1,44 @@
+{
+  "id": "dxcufgbs-glowing-dice-cores",
+  "title": "Dxcufgb's Glowing dice cores",
+  "description": "Gives Dice So Nice dice a glowing core of light inside the die: 16 glows such as embers, a spiral vortex, a nebula, a storm, a beating heart, an eclipse, frost seams, lava blobs, a plasma globe, an aurora and a bubbling potion. Pick the Glowing cores dice system per die type in Dice So Nice and tune the glow, its colours, strength and pulse in its System options. Everyone at the table sees your glow on your rolls.",
+  "version": "0.1.0",
+  "authors": [
+    {
+      "name": "Dxcufgb",
+      "url": "https://github.com/Dxcufgb"
+    }
+  ],
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13"
+  },
+  "url": "https://github.com/dxcufgb/FoundryVTT-glowing-dice-cores",
+  "manifest": "https://github.com/dxcufgb/FoundryVTT-glowing-dice-cores/releases/latest/download/module.json",
+  "download": "https://github.com/dxcufgb/FoundryVTT-glowing-dice-cores/releases/latest/download/module.zip",
+  "bugs": "https://github.com/dxcufgb/FoundryVTT-glowing-dice-cores/issues",
+  "readme": "https://github.com/dxcufgb/FoundryVTT-glowing-dice-cores#readme",
+  "license": "LICENSE",
+  "esmodules": [
+    "scripts/main.js"
+  ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
+  ],
+  "relationships": {
+    "requires": [
+      {
+        "id": "dice-so-nice",
+        "type": "module",
+        "reason": "The glow is drawn inside Dice So Nice's 3D dice.",
+        "compatibility": {
+          "minimum": "5.0.0"
+        }
+      }
+    ]
+  }
+}

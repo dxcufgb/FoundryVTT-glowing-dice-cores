@@ -1,0 +1,56 @@
+{
+  "DXGC": {
+    "SystemName": "Glowing cores",
+    "Effect": {
+      "ember": "Ember Heart",
+      "vortex": "Arcane Vortex",
+      "nebula": "Pocket Nebula",
+      "storm": "Storm Cell",
+      "heart": "Heartstone",
+      "eclipse": "Eclipse",
+      "frost": "Frost Lattice",
+      "lava": "Lava Lamp",
+      "plasma": "Plasma Globe",
+      "aurora": "Aurora",
+      "wisps": "Will-o'-Wisps",
+      "rings": "Arcane Rings",
+      "potion": "Bubbling Potion",
+      "helix": "Twin Helix",
+      "sun": "Radiant Sun",
+      "fairy": "Fairy Lights"
+    },
+    "Pulse": {
+      "steady": "Steady",
+      "breathe": "Breathe",
+      "heartbeat": "Heartbeat",
+      "flicker": "Flicker"
+    },
+    "Colours": {
+      "effect": "The glow's own colours",
+      "custom": "My colours below"
+    },
+    "System": {
+      "Header": "Glowing core",
+      "Effect": "Glow",
+      "Colours": "Colours",
+      "Core": "Core colour",
+      "Glow": "Glow colour",
+      "Intensity": "Intensity (%)",
+      "CoreSize": "Core size (%)",
+      "Speed": "Animation speed (%)",
+      "Pulse": "Pulse",
+      "Rim": "Rim light (%)",
+      "Body": "Darken the die body (%)",
+      "Bloom": "Bloom (%), with realistic lighting"
+    },
+    "Settings": {
+      "Quality": {
+        "Name": "Glow quality",
+        "Hint": "How many samples the glow takes through each die. Lower is faster on weak graphics cards. Takes effect after a reload.",
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      }
+    }
+  }
+}
