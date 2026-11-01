@@ -1,0 +1,8 @@
+/* Show the Glowing cores System options inline in Dice So Nice's Appearance tab instead of behind its cog dialog.
+   Dice So Nice already renders them in each tab, in a hidden block that is submitted with the form. */
+.dice-so-nice .tabAppearance .dsn-hidden:has(> [data-systemsettings-hidden] > [data-systemsettings="dxcufgbs-glowing-cores"]) {
+  display: block;
+}
+.dice-so-nice .tabAppearance:has([data-systemsettings="dxcufgbs-glowing-cores"]) [data-system-options] {
+  display: none;
+}
