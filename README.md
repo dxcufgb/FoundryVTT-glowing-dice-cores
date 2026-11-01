@@ -25,7 +25,7 @@ https://github.com/dxcufgb/FoundryVTT-glowing-dice-cores/releases/latest/downloa
 
 1. Open **Game Settings → Configure Settings → Dice So Nice → Dice So Nice Settings**, tab **Appearance**.
 2. For **Global** or one die type, set the dice system to **Glowing cores**.
-3. Click the system options button next to it and pick a glow, its colours, strength and pulse.
+3. The glow options appear below the die settings in the same tab: pick a glow, its colours, strength and pulse.
 4. Save and roll.
 
 A dark die colour with the glass material shows the glow best. The options are stored with your Dice So Nice appearance, so each die type can have its own glow and other players see yours.
@@ -53,7 +53,7 @@ A dark die colour with the glass material shows the glow best. The options are s
 
 ## System options
 
-Set per die type in Dice So Nice's system options dialog:
+Set per die type in Dice So Nice's Appearance tab, shown inline once the system is **Glowing cores**:
 
 | Option | What it does |
 | --- | --- |
