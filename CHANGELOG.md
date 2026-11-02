@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Fixed: once someone rolled Glowing cores dice, other dice with the same look (any player's, any dice system) could glow too.
+
 ## 0.1.0
 
 - First version: the **Glowing cores** dice system for Dice So Nice 5, with d4, d6, d8, d10, d12, d20 and d100 that hold a glowing core of light inside the die.
