@@ -109,6 +109,10 @@ function processMaterial(type, material, appearance) {
       gcFg: { value: realistic ? linear(fg) : fg }
     };
     material.userData.glowingCore = { uniforms, ratio };
+    // three.js picks a cached program by this key BEFORE the shader hook runs, and every Dice So Nice material
+    // shares the default key. Without our own, other players' plain dice can reuse a compiled glow program.
+    // Dice So Nice replaces it with a hash of the final source once the glow is injected.
+    material.customProgramCacheKey = () => MODULE_ID;
 
     const previous = material.onBeforeRender;
     material.onBeforeRender = function (renderer, scene, camera, geometry, object, group) {
