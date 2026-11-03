@@ -27,11 +27,12 @@ d4–d20 and d100 get a ray-marched light volume inside them. No build step, no 
   UI strings are under `DXGC.*`.
 - A new **glow**: its id appended to `EFFECTS` (never inserted: the order is the shader's pattern number and is
   stored in users' settings), a `PALETTES` entry, a `DXGC.Effect.<id>` string, a branch in `gcField` before the
-  final default (move the old default into an `if(gcPattern < n.5)` branch), a README row and the glow count in the
-  README, `module.json` description and CHANGELOG. `node --test tests/*.test.mjs` checks most of this.
+  final default (move the old default into an `if(gcPattern < n.5)` branch), a row in the table on the wiki's Glows
+  page, the glow count wherever it appears (README intro,
+  the wiki's Home and System Options pages), `module.json`'s description and the CHANGELOG. `node --test tests/*.test.mjs` checks most of this.
 - Glows work in `q`, the position in units of the die's inner radius (`r = length(q)`, the core edge is `gcCore`),
   and return emission (rgb) and absorption (a). Features thinner than about 0.06 in `q` flicker at Low quality.
-- Update `README.md` when glows, options, settings or the API change.
+- Update the wiki (not `README.md`, which only has the install steps and links to the wiki) when glows, options, settings or the API change.
 
 ## Review focus
 - **Never throw from a Dice So Nice callback** (`processMaterial`, `beforeShaderCompile`, `onBeforeRender`): log
