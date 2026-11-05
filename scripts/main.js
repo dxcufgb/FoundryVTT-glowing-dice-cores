@@ -14,12 +14,22 @@
  */
 import { MODULE_ID, SYSTEM_ID, DIE_TYPES, EFFECTS, PALETTES, PULSES, DEFAULTS, INNER_RATIO, QUALITY_STEPS } from "./constants.js";
 import { injectGlow } from "./glow-shader.js";
+import { crumb, noteError, registerDebugRecorder } from "./debug-recorder.js";
 
 const t = key => game.i18n.localize(`DXGC.${key}`);
 const TIME = { value: 0 };
 const START = performance.now();
 let DiceSystemClass = null;
 let apiImport = null;
+/** Counters for the Debug Recorder's snapshot (see debugSnapshot). */
+const stats = {
+  apiImport: "pending",          // pending | ok | missing | failed
+  registration: "pending",       // pending | registered | already | noApi | failed
+  presets: 0,
+  materials: 0,
+  materialsByEffect: {},
+  shaders: { injected: 0, noMarkers: 0, failed: 0 }
+};
 
 /* ---------- colour helpers (no three.js needed) ---------- */
 
@@ -89,6 +99,11 @@ function processMaterial(type, material, appearance) {
     const bg = parseColour(data.background) ?? { r: 0, g: 0, b: 0 };
     const fg = parseColour(data.foreground) ?? { r: 1, g: 1, b: 1 };
     const ratio = INNER_RATIO[shapeOf(type)] ?? 0.6;
+    stats.materials++;
+    stats.materialsByEffect[s.effect] = (stats.materialsByEffect[s.effect] ?? 0) + 1;
+    crumb("material.process", {
+      dieType: DIE_TYPES.includes(type) ? type : "other", effect: s.effect, pulse: s.pulse, colours: s.colours, realistic
+    });
 
     const uniforms = {
       gcTime: TIME,
@@ -125,6 +140,7 @@ function processMaterial(type, material, appearance) {
       }
     };
   } catch (err) {
+    noteError("material.process");
     console.error(`${MODULE_ID} | could not prepare a die material`, err);
   }
 }
@@ -134,9 +150,18 @@ function beforeShaderCompile(shader, material) {
   const glow = material?.userData?.glowingCore;
   if (!glow) return;
   try {
-    if (!injectGlow(shader, glow.uniforms, qualitySteps()))
+    const steps = qualitySteps();
+    if (injectGlow(shader, glow.uniforms, steps)) {
+      stats.shaders.injected++;
+      crumb("shader.inject", { steps, bloomPass: !!shader.uniforms?.globalBloom });
+    } else {
+      stats.shaders.noMarkers++;
+      crumb("shader.skip", { reason: "noMarkers" });
       console.warn(`${MODULE_ID} | this die's material has no place for the glow; it is shown without one`);
+    }
   } catch (err) {
+    stats.shaders.failed++;
+    noteError("shader.inject");
     console.error(`${MODULE_ID} | could not add the glow to a die`, err);
   }
 }
@@ -167,20 +192,33 @@ async function registerWithDiceSoNice(dice3d) {
   try {
     if (!DiceSystemClass) await apiImport;
     if (!DiceSystemClass || !dice3d?.DiceFactory) {
+      stats.registration = "noApi";
+      crumb("dsn.register", { result: "noApi", apiClass: !!DiceSystemClass, factory: !!dice3d?.DiceFactory });
       console.warn(`${MODULE_ID} | Dice So Nice 5's dice system API was not found; no glowing dice`);
       return;
     }
     const factory = dice3d.DiceFactory;
-    if (factory.systems.has(SYSTEM_ID)) return;
+    if (factory.systems.has(SYSTEM_ID)) {
+      stats.registration = "already";
+      crumb("dsn.register", { result: "already" });
+      return;
+    }
     dice3d.addSystem(buildSystem());
     const standard = factory.systems.get("standard");
+    let presets = 0;
     for (const type of DIE_TYPES) {
       const preset = standard?.dice?.get(type);
       if (!preset) continue;
       dice3d.addDicePreset({ type, labels: [...preset.labels], system: SYSTEM_ID });
+      presets++;
     }
+    stats.registration = "registered";
+    stats.presets = presets;
+    crumb("dsn.register", { result: "registered", presets, standardSystem: !!standard });
     console.log(`${MODULE_ID} | added the "${t("SystemName")}" dice system to Dice So Nice`);
   } catch (err) {
+    stats.registration = "failed";
+    noteError("dsn.register");
     console.error(`${MODULE_ID} | could not add the dice system to Dice So Nice`, err);
   }
 }
@@ -202,11 +240,71 @@ Hooks.once("init", () => {
   });
 
   apiImport = import("../../dice-so-nice/api.js")
-    .then(mod => { DiceSystemClass = mod.DiceSystem ?? null; })
-    .catch(err => console.warn(`${MODULE_ID} | Dice So Nice is not installed or too old`, err));
+    .then(mod => {
+      DiceSystemClass = mod.DiceSystem ?? null;
+      stats.apiImport = DiceSystemClass ? "ok" : "missing";
+      crumb("dsn.apiImport", { result: stats.apiImport });
+    })
+    .catch(err => {
+      stats.apiImport = "failed";
+      noteError("dsn.apiImport");
+      console.warn(`${MODULE_ID} | Dice So Nice is not installed or too old`, err);
+    });
 
   const mod = game.modules.get(MODULE_ID);
   if (mod) mod.api = Object.freeze({ SYSTEM_ID, EFFECTS: [...EFFECTS], PULSES: [...PULSES], DEFAULTS: { ...DEFAULTS } });
 });
 
 Hooks.once("diceSoNiceReady", dice3d => { registerWithDiceSoNice(dice3d); });
+
+/* ---------- Debug Recorder (optional, see debug-recorder.js) ---------- */
+
+/**
+ * This user's own Dice So Nice appearance, as far as it uses Glowing cores: per die type ("global" or "d20", ...)
+ * the glow and pulse ids. Only this module's own option ids; colours are left out.
+ */
+function myGlowAppearance() {
+  const appearance = game.user?.getFlag?.("dice-so-nice", "appearance");
+  if (!appearance || typeof appearance !== "object") return {};
+  const out = {};
+  for (const [key, a] of Object.entries(appearance)) {
+    if (a?.system !== SYSTEM_ID) continue;
+    const s = normalize(a.systemSettings);
+    out[key === "global" || DIE_TYPES.includes(key) ? key : "other"] = { effect: s.effect, pulse: s.pulse, colours: s.colours };
+  }
+  return out;
+}
+
+/** Runtime state for Dxcufgb's Debug Recorder: counts, booleans, versions and this module's own fixed ids. */
+function debugSnapshot() {
+  const dsn = game.modules.get("dice-so-nice");
+  const factory = game.dice3d?.DiceFactory;
+  const system = factory?.systems?.get?.(SYSTEM_ID);
+  let appearance = {};
+  try { appearance = myGlowAppearance(); } catch (_) { appearance = { unreadable: true }; }
+  return {
+    diceSoNice: {
+      detected: !!dsn?.active,
+      installed: !!dsn,
+      version: dsn?.version ?? null,
+      api: !!game.dice3d,
+      diceSystemClass: !!DiceSystemClass,
+      apiImport: stats.apiImport,
+      realisticLighting: factory ? !!factory.realisticLighting : null
+    },
+    system: {
+      id: SYSTEM_ID,
+      registration: stats.registration,
+      registered: !!system,
+      dieTypes: system?.dice ? [...system.dice.keys()].filter(k => DIE_TYPES.includes(k)) : [],
+      presetsAdded: stats.presets
+    },
+    registry: { effects: [...EFFECTS], pulses: [...PULSES], dieTypes: [...DIE_TYPES] },
+    marchSteps: qualitySteps(),
+    materials: { processed: stats.materials, byEffect: { ...stats.materialsByEffect } },
+    shaders: { ...stats.shaders },
+    myAppearance: appearance
+  };
+}
+
+registerDebugRecorder(debugSnapshot);
