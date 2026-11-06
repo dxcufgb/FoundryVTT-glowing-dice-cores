@@ -49,6 +49,7 @@ d4–d20 and d100 get a ray-marched light volume inside them. No build step, no 
   pixel, so a glow's branch should stay cheap (the Frost Lattice cell search is the most expensive one).
 - **Debug Recorder**: the integration is optional; snapshot/breadcrumb data must never contain names, free text,
   image paths or URLs (only counts, booleans, versions and this module's own effect/pulse/die-type ids; no colours).
-  Breadcrumbs only in per-material and per-compile callbacks, never in `onBeforeRender`.
+  Breadcrumbs at the one-time steps (Dice So Nice API import, system registration, caught errors via `noteError`) and
+  in the per-material and per-compile callbacks; never in `onBeforeRender` (per die and frame).
 - **Stored ids**: `SYSTEM_ID`, effect ids, pulse ids and option ids are saved in users' Dice So Nice appearance;
   renaming one silently resets users' dice. `EFFECTS` and `PULSES` order is the shader's numbering.
