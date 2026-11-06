@@ -44,3 +44,32 @@ test("the helper registers once and only crumbs while recording", () => {
   assert.equal(snap.errors.last, "shader.inject");
   assert.doesNotThrow(() => JSON.stringify(snap));
 });
+
+test("a failed register() (false or a throw) is not kept, and the next init / ready / hook retries", async t => {
+  t.mock.method(console, "warn", () => {});
+  const fresh = await import("../scripts/debug-recorder.js?register-fails");
+  let outcome = false;
+  const attempts = [];
+  const rec = {
+    register: id => {
+      attempts.push(id);
+      if (outcome instanceof Error) throw outcome;
+      return outcome;
+    },
+    breadcrumb: () => {},
+    isRecording: () => false
+  };
+  modules.set("dxcufgbs-debug-recorder", { active: true, api: rec });
+  fresh.registerDebugRecorder(() => ({ state: 2 }));
+  assert.equal(attempts.length, 1, "register() returned false");
+  outcome = new Error("recorder bug");
+  assert.doesNotThrow(() => run("init"), "a throwing register() is swallowed");
+  assert.equal(attempts.length, 2, "retried after false");
+  outcome = true;
+  run("ready");
+  assert.equal(attempts.length, 3, "retried after a throw");
+  run("dxcufgbs-debug-recorder.ready", rec);
+  fresh.registerDebugRecorder(() => ({ state: 2 }));
+  assert.equal(attempts.length, 3, "a successful registration is not repeated");
+  assert.deepEqual(new Set(attempts), new Set([MODULE_ID]));
+});
