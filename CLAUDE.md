@@ -17,6 +17,10 @@ d4–d20 and d100 get a ray-marched light volume inside them. No build step, no 
   addition when Dice So Nice injected `globalBloom`. `injectGlow` leaves a shader alone if a marker is missing.
 - `scripts/constants.js` – `MODULE_ID`, `SYSTEM_ID`, `DIE_TYPES`, `EFFECTS`, `PALETTES`, `PULSES`, `DEFAULTS`,
   `INNER_RATIO`, `QUALITY_STEPS`.
+- `scripts/debug-recorder.js` – optional integration with Dxcufgb's Debug Recorder (`dxcufgbs-debug-recorder`, not a
+  dependency): registers once (its `.ready` hook or its `api` already there on init/ready), `crumb(key, data)` (no-op
+  unless it records, never throws), `noteError(code)` (fixed error codes counted for the snapshot). The snapshot is
+  `debugSnapshot()` at the end of `main.js` (counters in `stats`). Tested by `tests/debug-recorder.test.mjs`.
 - `tests/effects.test.mjs` – node:test consistency checks (effects, palettes, lang, shader branches, injectGlow),
   run by CI through `.github/foundry-module.json` (`lint`). Not shipped.
 - `.github/workflows/ci.yml` / `release.yml` – thin callers of `dxcufgb/foundry-module-ci`; identical in every
@@ -43,5 +47,9 @@ d4–d20 and d100 get a ray-marched light volume inside them. No build step, no 
   `customProgramCacheKey` (a hash of the shader source) stays shared across materials.
 - **Per-frame cost**: `onBeforeRender` runs for every die every frame; no allocations there. The march runs per
   pixel, so a glow's branch should stay cheap (the Frost Lattice cell search is the most expensive one).
+- **Debug Recorder**: the integration is optional; snapshot/breadcrumb data must never contain names, free text,
+  image paths or URLs (only counts, booleans, versions and this module's own effect/pulse/die-type ids; no colours).
+  Breadcrumbs at the one-time steps (Dice So Nice API import, system registration, caught errors via `noteError`) and
+  in the per-material and per-compile callbacks; never in `onBeforeRender` (per die and frame).
 - **Stored ids**: `SYSTEM_ID`, effect ids, pulse ids and option ids are saved in users' Dice So Nice appearance;
   renaming one silently resets users' dice. `EFFECTS` and `PULSES` order is the shader's numbering.
