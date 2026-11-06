@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.2
 
 - Optional integration with Dxcufgb's Debug Recorder: when it is installed and recording, the glowing cores add their runtime state (Dice So Nice detected and its version, whether the Glowing cores system registered, glow ids, materials and shaders prepared) and breadcrumbs of their main steps to its bug-report file. Nothing changes without it.
 - Fixed: once someone rolled Glowing cores dice, other dice with the same look (any player's, any dice system) could glow too.
